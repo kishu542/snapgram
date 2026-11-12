@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Snapgram</title>
+<style>
+:root{--bg:#fafafa;--card:#fff;--tx:#161616;--mu:#737373;--bd:#e4e4e4;--ac:#e1306c;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0b0b0c;--card:#151517;--tx:#f5f5f5;--mu:#9a9a9f;--bd:#2a2a2e;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;padding:env(safe-area-inset-top,0) 0 calc(70px + env(safe-area-inset-bottom,0))}
+button,input,textarea{font:inherit;color:inherit}
+button{background:none;border:0;cursor:pointer;padding:6px}
+.logo{font:italic 800 1.8rem Georgia,serif;background:linear-gradient(45deg,#f9a03f,#e1306c,#833ab4);-webkit-background-clip:text;background-clip:text;color:transparent}
+header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+main,#auth{max-width:470px;margin:0 auto}
+#auth{padding:60px 24px;text-align:center}
+#auth input{display:block;width:100%;padding:12px;margin:8px 0;border:1px solid var(--bd);border-radius:10px;background:var(--card);outline:0}
+.pb{background:var(--ac);color:#fff;border-radius:10px;padding:12px;font-weight:700;width:100%;margin-top:8px}
+.err{color:#e0245e;font-size:.9rem;min-height:1.3em;margin:6px 0}
+.sw{color:var(--mu);font-size:.9rem;margin-top:14px}.sw a{color:var(--ac);cursor:pointer;font-weight:600}
+.post{background:var(--card);border-bottom:1px solid var(--bd);margin-bottom:10px}
+.ph{display:flex;align-items:center;gap:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(45deg,#f9a03f,#e1306c,#833ab4);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;text-transform:uppercase;flex:0 0 auto}
+.im{position:relative;background:var(--bd)}.im img{width:100%;display:block;max-height:80vh;object-fit:cover}
+.hh{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:5rem;color:#fff;opacity:0;pointer-events:none}.hh.pop{animation:pop .7s}
+@keyframes pop{0%{opacity:0;transform:scale(.4)}30%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1)}}
+.ac{display:flex;gap:2px;padding:6px 8px;font-size:1.5rem}.ac .r{margin-left:auto}.liked{color:var(--ac)}
+.t{padding:0 14px 6px;font-size:.92rem}.lk{font-weight:700}.mu{color:var(--mu);cursor:pointer}
+.cin{display:flex;border-top:1px solid var(--bd);margin-top:6px}.cin input{flex:1;background:none;border:0;padding:12px 14px;outline:0}.cin button{color:var(--ac);font-weight:700}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0));z-index:6}
+nav button{font-size:1.6rem;padding:4px 18px;opacity:.55}nav .on{opacity:1}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}.grid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;cursor:pointer}
+.srch{width:calc(100% - 24px);margin:10px 12px;padding:10px 14px;border-radius:10px;border:0;background:var(--bd);outline:0}
+.row{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer}
+.prof{display:flex;align-items:center;gap:22px;padding:18px 16px}.prof .av{width:80px;height:80px;font-size:2rem}
+.num{display:flex;gap:18px;text-align:center;font-size:.8rem;color:var(--mu)}.num b{display:block;font-size:1.1rem;color:var(--tx)}
+.tabs{display:flex;border-top:1px solid var(--bd)}.tabs button{flex:1;padding:12px;color:var(--mu);border-bottom:2px solid transparent}.tabs .on{color:var(--tx);border-color:var(--tx)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:20;display:none;align-items:center;justify-content:center}.modal.on{display:flex}
+.box{background:var(--card);border-radius:16px;width:min(94%,440px);max-height:90vh;overflow:auto;padding:16px}.box textarea{width:100%;height:80px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;margin:10px 0}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 16px;border-radius:20px;z-index:30;font-size:.85rem;display:none}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<div id="auth" class="hide">
+<div class="logo" style="font-size:2.6rem;margin-bottom:24px">Snapgram</div>
+<input id="un" placeholder="Username" autocapitalize="off" autocomplete="username">
+<input id="pw" type="password" placeholder="Password (min 6)" autocomplete="current-password">
+<div class="err" id="err"></div>
+<button class="pb" id="go">Log in</button>
+<div class="sw" id="sw"></div>
+</div>
+
+<div id="app" class="hide">
+<header><span class="logo">Snapgram</span><button id="add" aria-label="New post">➕</button></header>
+<main id="main"></main>
+<nav><button data-v="feed">🏠</button><button data-v="search">🔍</button><button data-v="me">👤</button></nav>
+</div>
+<div class="modal" id="cm"><div class="box"><b>New post</b><br><br><input type="file" accept="image/*" id="file"><textarea id="cap" placeholder="Write a caption…"></textarea><div class="err" id="cerr"></div><button class="pb" id="share">Share</button></div></div>
+<div class="modal" id="pm"><div class="box" id="pbox" style="padding:0"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tok=null,me=null,mode='login',P={},view='feed',ptab='mine';
+try{tok=localStorage.getItem('sgt')}catch(e){}
+const setTok=t=>{tok=t;try{t?localStorage.setItem('sgt',t):localStorage.removeItem('sgt')}catch(e){}};
+async function api(p,o={}){const h={};if(tok)h.Authorization='Bearer '+tok;if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
+const r=await fetch('/api'+p,{method:o.method||(o.body?'POST':'GET'),headers:h,body:o.body});const d=await r.json().catch(()=>({}));
+if(r.status===401&&tok){setTok(null);location.reload()}if(!r.ok)throw new Error(d.error||'Something went wrong');return d}
+const toast=t=>{const e=$('#toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1600)};
+
+/* auth */
+function authUI(){$('#go').textContent=mode==='login'?'Log in':'Sign up';$('#sw').innerHTML=mode==='login'?'New here? <a id="sl">Create account</a>':'Have an account? <a id="sl">Log in</a>';$('#sl').onclick=()=>{mode=mode==='login'?'register':'login';$('#err').textContent='';authUI()}}
+async function submit(){try{const d=await api('/'+mode,{json:{username:$('#un').value,password:$('#pw').value}});setTok(d.token);me=d.user;start()}catch(e){$('#err').textContent=e.message}}
+$('#go').onclick=submit;$('#pw').onkeydown=e=>{if(e.key==='Enter')submit()};
+async function boot(){if(tok){try{me=await api('/me');return start()}catch(e){setTok(null)}}$('#auth').classList.remove('hide');authUI()}
+function start(){$('#auth').classList.add('hide');$('#app').classList.remove('hide');go('feed')}
+
+/* views */
+function postHTML(p){P[p.id]=p;const own=p.username===me.username;return `<article class="post" data-id="${p.id}"><div class="ph" data-u="${esc(p.username)}"><div class="av">${esc(p.username[0])}</div>${esc(p.username)}</div>
+<div class="im" data-a="dbl"><img src="${esc(p.img)}" alt="" loading="lazy"><span class="hh">♥</span></div>
+<div class="ac"><button data-a="like" class="${p.liked?'liked':''}">${p.liked?'♥':'♡'}</button><button data-a="cm">💬</button>${own?'<button data-a="del">🗑️</button>':''}<button class="r" data-a="save">${p.saved?'🔖':'🏷️'}</button></div>
+<div class="t lk">${p.likes} likes</div>${p.caption?`<div class="t"><b>${esc(p.username)}</b> ${esc(p.caption)}</div>`:''}
+${p.cc?`<div class="t mu" data-a="cm">View all ${p.cc} comments</div>`:''}${(p.list||[]).map(c=>`<div class="t"><b>${esc(c.username)}</b> ${esc(c.text)}</div>`).join('')}
+<div class="cin"><input placeholder="Add a comment…"><button data-a="post">Post</button></div></article>`}
+const grid=a=>a.length?`<div class="grid">${a.map(p=>(P[p.id]=p,`<img data-p="${p.id}" src="${esc(p.img)}" alt="">`)).join('')}</div>`:'<p style="text-align:center;color:var(--mu);padding:30px">Nothing here yet</p>';
+async function go(v,arg){view=v;document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===(v==='user'&&arg===me.username?'me':v)));const m=$('#main');
+try{if(v==='feed'){m.innerHTML='<p class="t mu">Loading…</p>';const a=await api('/posts');m.innerHTML=a.length?a.map(postHTML).join(''):'<p style="text-align:center;color:var(--mu);padding:40px">No posts yet. Tap ➕ to share the first one!</p>'}
+else if(v==='search'){m.innerHTML='<input class="srch" id="q" placeholder="Search users"><div id="sr"></div>';$('#q').oninput=async e=>{const r=await api('/users?q='+encodeURIComponent(e.target.value));$('#sr').innerHTML=r.map(u=>`<div class="row" data-u="${esc(u.username)}"><div class="av">${esc(u.username[0])}</div>${esc(u.username)}</div>`).join('')};$('#q').oninput({target:$('#q')})}
+else{const u=v==='me'?me.username:arg;const d=await api('/users/'+encodeURIComponent(u));let list=d.posts;if(d.isMe&&ptab==='saved')list=await api('/posts?saved=1');
+m.innerHTML=`<div class="prof"><div class="av">${esc(d.username[0])}</div><div class="num"><span><b>${d.posts.length}</b>posts</span><span><b>${d.followers}</b>followers</span><span><b>${d.following}</b>following</span></div></div>
+<div class="t"><b>${esc(d.username)}</b></div><div class="t">${d.isMe?'<button class="pb" id="lo" style="background:var(--bd);color:var(--tx)">Log out</button>':`<button class="pb" id="fl" data-f="${esc(d.username)}">${d.isFollowing?'Following':'Follow'}</button>`}</div>
+${d.isMe?`<div class="tabs"><button data-t="mine" class="${ptab==='mine'?'on':''}">▦ Posts</button><button data-t="saved" class="${ptab==='saved'?'on':''}">🔖 Saved</button></div>`:''}${grid(list)}`;
+if(d.isMe)$('#lo').onclick=()=>{setTok(null);location.reload()}}}catch(e){m.innerHTML='<p class="t">'+esc(e.message)+'</p>'}}
+function redraw(id){const p=P[id];document.querySelectorAll(`.post[data-id="${id}"]`).forEach(a=>a.outerHTML=postHTML(p))}
+
+/* events */
+document.addEventListener('click',async e=>{
+const t=e.target;
+const nb=t.closest('nav button');if(nb)return go(nb.dataset.v);
+const u=t.closest('[data-u]');if(u){$('#pm').classList.remove('on');return go('user',u.dataset.u)}
+const g=t.closest('[data-p]');if(g){$('#pbox').innerHTML=postHTML(P[g.dataset.p]);return $('#pm').classList.add('on')}
+const tb=t.closest('[data-t]');if(tb){ptab=tb.dataset.t;return go('me')}
+const f=t.closest('[data-f]');if(f){const r=await api('/users/'+f.dataset.f+'/follow',{method:'POST'});f.textContent=r.isFollowing?'Following':'Follow';return}
+if(t.id==='pm'||t.id==='cm')return t.classList.remove('on');
+const a=t.closest('[data-a]'),art=t.closest('.post');if(!a||!art)return;const id=art.dataset.id,p=P[id],k=a.dataset.a;
+try{if(k==='like'){Object.assign(p,await like(id));redraw(id)}
+else if(k==='save'){const r=await api('/posts/'+id+'/save',{method:'POST'});p.saved=r.saved;redraw(id);toast(r.saved?'Saved':'Removed')}
+else if(k==='cm'){p.list=await api('/posts/'+id+'/comments');p.cc=0;redraw(id)}
+else if(k==='post')addC(art)
+else if(k==='del'&&confirm('Delete this post?')){await api('/posts/'+id,{method:'DELETE'});$('#pm').classList.remove('on');go(view==='feed'?'feed':'me')}}catch(x){toast(x.message)}});
+const like=async id=>{const r=await api('/posts/'+id+'/like',{method:'POST'});return{liked:r.liked,likes:r.likes}};
+async function addC(art){const i=art.querySelector('input'),v=i.value.trim();if(!v)return;const p=P[art.dataset.id];try{const c=await api('/posts/'+p.id+'/comments',{json:{text:v}});p.list=(p.list||[]);if(p.cc){p.list=await api('/posts/'+p.id+'/comments');p.cc=0}else p.list.push(c);redraw(p.id)}catch(x){toast(x.message)}}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.cin input'))addC(e.target.closest('.post'))});
+document.addEventListener('dblclick',async e=>{const im=e.target.closest('[data-a=dbl]');if(!im)return;const id=im.closest('.post').dataset.id;im.querySelector('.hh').classList.add('pop');if(!P[id].liked){Object.assign(P[id],await like(id));setTimeout(()=>redraw(id),600)}});
+$('#add').onclick=()=>$('#cm').classList.add('on');
+$('#share').onclick=async()=>{const f=$('#file').files[0];if(!f)return $('#cerr').textContent='Choose an image first';const fd=new FormData();fd.append('image',f);fd.append('caption',$('#cap').value);
+try{$('#share').disabled=true;await api('/posts',{body:fd});$('#cm').classList.remove('on');$('#file').value='';$('#cap').value='';$('#cerr').textContent='';toast('Posted!');go('feed')}catch(e){$('#cerr').textContent=e.message}$('#share').disabled=false};
+boot();
+</script>
+</body>
+</html>
